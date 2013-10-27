@@ -29,6 +29,7 @@ use Symfony\Component\Form\Exception\PropertyAccessDeniedException;
 use Symfony\Bridge\Doctrine\RegistryInterface;
 
 use Exporter\Source\DoctrineORMQuerySourceIterator;
+use Sonata\AdminBundle\Form\Type\ModelAutocompleteType;
 
 class ModelManager implements ModelManagerInterface
 {
@@ -605,5 +606,31 @@ class ModelManager implements ModelManagerInterface
     public function collectionRemoveElement(&$collection, &$element)
     {
         return $collection->removeElement($element);
+    }
+
+    public function getLikeQuery(QueryBuilder $queryBuilder, $class, $alias, $property, $value, $type)
+    {
+        // escape %_
+        $value = addcslashes($value, '\\%_');
+
+        switch ($type) {
+            case ModelAutocompleteType::SEARCH_TYPE_BEGINS_WITH:
+                $value = '%'.$value;
+                break;
+            case ModelAutocompleteType::SEARCH_TYPE_ENDS_WITH:
+                $value = $value.'%';
+                break;
+            case ModelAutocompleteType::SEARCH_TYPE_CONTAINS:
+            default:
+                $value = '%'.$value.'%';
+                break;
+        }
+
+        $queryBuilder
+            ->select(sprintf('partial %s.{%s, %s}', $alias, current($this->getIdentifierFieldNames($class)), $property))
+            ->from($class, $alias)
+            ->where(sprintf('%s.%s LIKE :search', $alias, $property))
+            ->setParameter('search', $value)
+            ->orderBy(sprintf('%s.%s', $alias, $property));
     }
 }
