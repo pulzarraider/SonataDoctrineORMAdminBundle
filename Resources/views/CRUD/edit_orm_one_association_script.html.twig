@@ -46,7 +46,13 @@ This code manage the one-to-many association field popup
                     return;
                 }
 
-                jQuery('#field_container_{{ id }}').replaceWith(html); // replace the html
+                if (jQuery('#field_container_{{ id }} table tr:last').length>0) {
+                    jQuery('#field_container_{{ id }} table tr:last').after(html);
+                } else {
+                   jQuery('#field_container_{{ id }}').replaceWith(html);
+                }
+
+
 
                 Admin.shared_setup(jQuery('#field_container_{{ id }}'));
 
