@@ -29,6 +29,7 @@ This code manage the one-to-many association field popup
         event.stopPropagation();
 
         var form = jQuery(this).closest('form');
+        var appendLastRow = (jQuery('#field_container_{{ id }} table > tbody > tr').length>0);
 
         // the ajax post
         jQuery(form).ajaxSubmit({
@@ -37,7 +38,8 @@ This code manage the one-to-many association field popup
                 'elementId': id,
                 'objectId':  sonata_admin.admin.root.id(sonata_admin.admin.root.subject),
                 'uniqid':    sonata_admin.admin.root.uniqid
-            } + sonata_admin.field_description.getOption('link_parameters', {})) }}',
+            } + sonata_admin.field_description.getOption('link_parameters', {})) }}'
+              + '&lastRow=' + (appendLastRow ? 1 : 0),
             type: "POST",
             dataType: 'html',
             data: { _xml_http_request: true },
@@ -46,12 +48,16 @@ This code manage the one-to-many association field popup
                     return;
                 }
 
-                if (jQuery('#field_container_{{ id }} table tr:last').length>0) {
-                    jQuery('#field_container_{{ id }} table tr:last').after(html);
-                } else {
-                   jQuery('#field_container_{{ id }}').replaceWith(html);
-                }
+                if (appendLastRow) {
+                    // remove unneeded table tags
+                    html = html.replace('<table>', '').replace('<tbody>', '').replace('</tbody>', '').replace('</table>', '');
 
+                    // append last row to table
+                    jQuery('#field_container_{{ id }} table > tbody > tr').filter(':last').after(html);
+                } else {
+                    // replace all form content
+                    jQuery('#field_container_{{ id }}').replaceWith(html);
+                }
 
 
                 Admin.shared_setup(jQuery('#field_container_{{ id }}'));
