@@ -17,7 +17,12 @@ file that was distributed with this source code.
     {% set last_row = last_row|default(false) %}
 
     {% if last_row and form.children|length > 1 and sonata_admin.edit == 'inline' and sonata_admin.inline == 'table' %}
-        {{ block('table_row') }}
+        {# These table/tbody tags should be here, because browser strips all td/tr tags from incomplete table #}
+        <table>
+            <tbody>
+                {{ block('table_row') }}
+            </tbody>
+        </table>
     {% else %}
         <div id="field_container_{{ id }}" class="field-container">
             <span id="field_widget_{{ id }}" >
@@ -28,7 +33,9 @@ file that was distributed with this source code.
                                 <thead>
                                     <tr>
                                         {% for field_name, nested_field in form.children|first.children %}
-                                            {% if field_name != '_identifier' %}
+                                            {% if field_name == '_identifier' %}
+                                                <th style="display:none;">_identifier</th>
+                                            {% else %}
                                                 {% if field_name == '_delete' %}
                                                     <th>{{ 'action_delete'|trans({}, 'SonataAdminBundle') }}</th>
                                                 {% else %}
@@ -47,7 +54,7 @@ file that was distributed with this source code.
                                                 <tr>
                                                     {% for field_name, nested_field in nested_group_field.children %}
                                                         {% if field_name == '_identifier' %}
-                                                            {{ form_widget(nested_field) }}
+                                                            <td style="display:none;">{{ form_widget(nested_field) }}</td>
                                                         {% else %}
                                                             <td class="sonata-ba-td-{{ id }}-{{ field_name  }} control-group{% if nested_field.vars.errors|length > 0 %} error{% endif %}"{% if (nested_field.vars['attr']['hidden'] is defined) and (nested_field.vars['attr']['hidden']) %} style="display:none;"{% endif %}>
                                                                 {% if sonata_admin.field_description.associationadmin.formfielddescriptions[field_name] is defined %}
